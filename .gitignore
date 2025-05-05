@@ -1,0 +1,4 @@
+src/tm_post.egg-info/
+sample_data/*
+__pycache__/
+*.pyc
