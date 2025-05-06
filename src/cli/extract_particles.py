@@ -21,7 +21,7 @@ def parse_arguments():
     parser.add_argument('--pixel_size', type=float, required=True, default=1.0, help="Wanted pixel size in final stack.")
     parser.add_argument('--threads', type=int, default=4, help="Number of threads for parallel processing.")
 
-    parser.add_argument('--quadrants', type=int, default=3, help="Number of quadrants to use for filtering.")
+    parser.add_argument('--quadrants', type=int, default=1, help="Number of quadrants to use for filtering.")
     
     parser.add_argument('--output', type=str, required=True, help="Path to the output star file.")
 
