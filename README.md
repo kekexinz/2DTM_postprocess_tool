@@ -9,29 +9,39 @@ A modular Python package for postprocessing 2D template matching results from cr
 ```bash
 git clone https://github.com/kekexinz/2DTM_postprocess_tool.git
 cd 2DTM_postprocess_tool
-pip install -e . # editable mode
+pip install -e .
 ```
 
-## 📦 Usage
+---
+
+## Usage
 
 ### `extract-particles`
-Extract initial particle peaks from 2DTM search.
-```bash
-extract-particles \ 
---db_file <cistem.db> \
---tm_job_id 1 \
---ctf_job_id 1 \
---pixel_size 1.0 \
---output <extracted_peaks.star>
-[--metric pval] \ # "zscore" or "pval"
-[--metric_cutoff 8.0] \
-[--threads 22] \
-[--local_max_filter] \ # "snr" or "zscore" (default) used for skimage peak_local_max
-[--min_peak_radius 10] \ # used for "min_distance" in skimage peak_local_max
-[--exclude_borders 92] \ # avoid finding partial particles near the edge of the image, used for skimage peak_local_max
-[--quadrants 1] \ # 1 (default) or 3, calculating p-value for only the first-quadrant or quadrant 1,2,4 (recommended for small particles) 
 
+Extract initial particle peaks from 2DTM search.
+
+```bash
+extract-particles \
+  --db_file <cistem.db> \
+  --tm_job_id 1 \
+  --ctf_job_id 1 \
+  --pixel_size 1.0 \
+  --output <extracted_peaks.star>
 ```
+
+**Optional parameters:**
+
+| Flag | Description | Default |
+|---|---|---|
+| `--metric` | `"zscore"` or `"pval"` | `"pval"` |
+| `--metric_cutoff` | Threshold for the chosen metric | `8.0` |
+| `--threads` | Number of parallel threads | `4` |
+| `--local_max_filter` | Image used for `peak_local_max`: `"snr"` or `"zscore"` | `"zscore"` |
+| `--min_peak_radius` | `min_distance` in `peak_local_max` (pixels) | `10` |
+| `--exclude_borders` | Border exclusion (pixels) to avoid partial particles | `92` |
+| `--quadrants` | `1` (first-quadrant only) or `3` (quadrants 1,2,4; recommended for small particles) | `1` |
+
+---
 
 ### `filter-particles`
 
@@ -39,35 +49,38 @@ Filter particles based on image thickness and/or angular invariance.
 
 ```bash
 filter-particles \
-  --star_file <extracted_peaks.star> \ # output from extract-particles
+  --star_file <extracted_peaks.star> \
   --db_file <cistem.db> \
   --tm_job_id 1 \
   --ctf_job_id 1 \
   --pixel_size 1.0 \
-  --output filtered_peaks.star \
-  [--avg_cutoff_lb] \ # angular search CC per-pixel avg
-  [--sd_cutoff_ub] \ # angular search CC per-pixel sd
-  [--snr_cutoff_ub] \ 
-  [--filter_by_image_thickness] \ # ctffind5 parameters
-  [--thickness_cutoff_lb] \
-  [--thickness_cutoff_ub] \
-  [--ctf_fitting_score_lb] \
-  [--ctf_fitting_score_ub] \
+  --output filtered_peaks.star
 ```
+
+**Optional parameters:**
+
+| Flag | Description |
+|---|---|
+| `--avg_cutoff_lb` | Lower bound on angular search CC per-pixel average |
+| `--sd_cutoff_ub` | Upper bound on angular search CC per-pixel standard deviation |
+| `--snr_cutoff_ub` | Upper bound on 2DTM SNR |
+| `--filter_by_image_thickness` | Enable filtering by ctffind5 thickness estimate |
+| `--thickness_cutoff_lb` | Lower bound on sample thickness (angstroms) |
+| `--thickness_cutoff_ub` | Upper bound on sample thickness (angstroms) |
+| `--ctf_fitting_score_lb` | Lower bound on CTF fitting score |
+| `--ctf_fitting_score_ub` | Upper bound on CTF fitting score |
+
+---
 
 ### `measure-template-bias`
 
-Measure the degree of template bias in a 2DTM reconstruction by comparing a full-template reconstruction to an omit-template reconstruction within the omitted region.
+Measure the degree of template bias in a 2DTM reconstruction by comparing a full-template reconstruction to an omit-template reconstruction within the omitted region. Python implementation of the bias metric introduced in [Lucas et al. (2023)](https://elifesciences.org/reviewed-preprints/90486v1), adapted for [Zhang et al. (2026)](https://elifesciences.org/reviewed-preprints/109790).
 
 ```bash
 measure-template-bias \
   --full_recon <recon_full.mrc> \
   --omit_recon <recon_omit.mrc> \
-  --templates <full_template.mrc> <omit_template.mrc> \
-  [--threshold_divisor 5] \
-  [--save_mask mask.mrc] \
-  [--plot_mask] \
-  [--top_n 100]
+  --templates <full_template.mrc> <omit_template.mrc>
 ```
 
 Alternatively, provide a precomputed difference map instead of both templates:
@@ -75,19 +88,25 @@ Alternatively, provide a precomputed difference map instead of both templates:
 measure-template-bias \
   --full_recon <recon_full.mrc> \
   --omit_recon <recon_omit.mrc> \
-  --diff_map <diff_template.mrc> \
-  [--threshold_divisor 5]
+  --diff_map <diff_template.mrc>
 ```
+
+**Optional parameters:**
+
+| Flag | Description | Default |
+|---|---|---|
+| `--threshold_divisor` | Mask tightness: voxels where `diff > avg_top100 / divisor` are included. Lower = tighter mask (recommended: 3-5) | `10` |
+| `--top_n` | Number of top voxels used to compute the threshold | `100` |
+| `--save_mask` | Save the binary mask as an MRC file | — |
+| `--plot_mask` | Plot central Z/Y/X sections of the mask for visual debugging | `False` |
 
 **Output:**
 - Degree of bias: fraction of the full reconstruction's density in the omitted region that is template-dependent (0 = no bias, 1 = fully biased)
 - Correlation coefficient between full and omit reconstructions
-- Optional: saved binary mask (`.mrc`) and central-section plot (`.png`) for debugging
+- Optional: saved binary mask (`.mrc`) and central-section plot (`.png`)
 
-**Parameters:**
-- `--threshold_divisor`: Controls mask tightness. Mask includes voxels where `diff > avg_top100 / divisor`. Lower values = tighter mask on the omitted atoms (default: 10, recommended: 3-5)
-- `--plot_mask`: Plot central Z/Y/X sections of the mask for visual inspection
-- `--top_n`: Number of top voxels used to compute the threshold (default: 100)
+---
 
 ### 3D reconstruction & refinement in cisTEM
-The output extracted_peaks.star and filtered_peaks.star can be imported into cisTEM as a RefinementPackage for further 3D reconstruction and refinement.
+
+The output `extracted_peaks.star` and `filtered_peaks.star` can be imported into cisTEM as a RefinementPackage for further 3D reconstruction and refinement.

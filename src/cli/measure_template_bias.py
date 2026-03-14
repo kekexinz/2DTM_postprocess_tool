@@ -4,9 +4,9 @@
 # measure_template_bias.py
 #
 # Python implementation of the template bias metric originally introduced
-# in Lucas et al. (2024) and implemented in C++ as MeasureTemplateBiasApp
-# in cisTEM. This Python port was developed for the analysis in Zhang &
-# Grant (2025).
+# in Lucas et al. (2023) and implemented in C++ as MeasureTemplateBiasApp
+# in cisTEM. This Python port was developed for the analysis in Zhang
+# et al. (2026).
 #
 # References:
 #   Lucas BA et al. (2023) "Baited reconstruction with 2DTM reveals the
