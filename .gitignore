@@ -2,3 +2,12 @@ src/tm_post.egg-info/
 sample_data/*
 __pycache__/
 *.pyc
+
+# Build artifacts
+build/
+dist/
+*.spec
+
+# Temp/state files
+*.dff
+2DTM_postprocess_release/

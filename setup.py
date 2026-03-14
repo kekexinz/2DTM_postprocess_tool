@@ -15,11 +15,13 @@ setup(
         "joblib",
         "tqdm",
         "scikit-image",
+        "matplotlib",
     ],
     entry_points={
         "console_scripts": [
             "filter-particles = cli.filter_particles:main",
             "extract-particles = cli.extract_particles:main",
+            "measure-template-bias = cli.measure_template_bias:cli",
         ],
     },
 )

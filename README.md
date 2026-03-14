@@ -55,5 +55,39 @@ filter-particles \
   [--ctf_fitting_score_ub] \
 ```
 
+### `measure-template-bias`
+
+Measure the degree of template bias in a 2DTM reconstruction by comparing a full-template reconstruction to an omit-template reconstruction within the omitted region.
+
+```bash
+measure-template-bias \
+  --full_recon <recon_full.mrc> \
+  --omit_recon <recon_omit.mrc> \
+  --templates <full_template.mrc> <omit_template.mrc> \
+  [--threshold_divisor 5] \
+  [--save_mask mask.mrc] \
+  [--plot_mask] \
+  [--top_n 100]
+```
+
+Alternatively, provide a precomputed difference map instead of both templates:
+```bash
+measure-template-bias \
+  --full_recon <recon_full.mrc> \
+  --omit_recon <recon_omit.mrc> \
+  --diff_map <diff_template.mrc> \
+  [--threshold_divisor 5]
+```
+
+**Output:**
+- Degree of bias: fraction of the full reconstruction's density in the omitted region that is template-dependent (0 = no bias, 1 = fully biased)
+- Correlation coefficient between full and omit reconstructions
+- Optional: saved binary mask (`.mrc`) and central-section plot (`.png`) for debugging
+
+**Parameters:**
+- `--threshold_divisor`: Controls mask tightness. Mask includes voxels where `diff > avg_top100 / divisor`. Lower values = tighter mask on the omitted atoms (default: 10, recommended: 3-5)
+- `--plot_mask`: Plot central Z/Y/X sections of the mask for visual inspection
+- `--top_n`: Number of top voxels used to compute the threshold (default: 100)
+
 ### 3D reconstruction & refinement in cisTEM
 The output extracted_peaks.star and filtered_peaks.star can be imported into cisTEM as a RefinementPackage for further 3D reconstruction and refinement.
